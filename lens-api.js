@@ -4,27 +4,22 @@
 // fetch post when stream
 // create post
 
-export const createProfile = `
-mutation CreateProfile {
-    createProfile(request: { 
-      handle: ${handle},
-      profilePictureUri: null,
-      followNFTURI: null,
-      followModule: null
-    }) {
-      ... on RelayerResult {
-        txHash
-      }
-      ... on RelayError {
-        reason
-      }
-      __typename
-    }
-  }`
+// ! follow request accept system
+// ! followers count
 
-  export const fetchProfile = `
-  query Profile {
-    profile(request: { handle: "lensprotocol.test" }) {
+import { Client, Provider, cacheExchange, fetchExchange } from 'urql';
+
+const ApiUrl = 'https://api-mumbai.lens.dev'
+
+export const client = Client({
+  url: ApiUrl,
+  exchanges: [cacheExchange, fetchExchange],
+}) 
+
+export const fetchProfileByHandle = `
+query Profiles($id: Handle!) {
+  profiles(request: { handles: [$id], limit: 1 }) {
+    items {
       id
       name
       bio
@@ -97,10 +92,78 @@ mutation CreateProfile {
           recipient
         }
         ... on ProfileFollowModuleSettings {
-          type
+         type
         }
         ... on RevertFollowModuleSettings {
-          type
+         type
+        }
+      }
+    }
+    pageInfo {
+      prev
+      next
+      totalCount
+    }
+  }
+}`
+
+
+
+
+export const createProfile = `
+mutation CreateProfile {
+    createProfile(request: { 
+      handle: ${handle},
+      profilePictureUri: null,
+      followNFTURI: null,
+      followModule: null
+    }) {
+      ... on RelayerResult {
+        txHash
+      }
+      ... on RelayError {
+        reason
+      }
+      __typename
+    }
+  }`
+
+  export const createPost = `
+  mutation CreatePostTypedData {
+    createPostTypedData(request: {
+      profileId: "0x03",
+      contentURI: "ipfs://QmPogtffEF3oAbKERsoR4Ky8aTvLgBF5totp5AuF8YN6vl",
+      collectModule: {
+        revertCollectModule: true
+      },
+      referenceModule: {
+        followerOnlyReferenceModule: false
+      }
+    }) {
+      id
+      expiresAt
+      typedData {
+        types {
+          PostWithSig {
+            name
+            type
+          }
+        }
+        domain {
+          name
+          chainId
+          version
+          verifyingContract
+        }
+        value {
+          nonce
+          deadline
+          profileId
+          contentURI
+          collectModule
+          collectModuleInitData
+          referenceModule
+          referenceModuleInitData
         }
       }
     }
@@ -145,10 +208,12 @@ mutation CreateFollowTypedData {
     }
   }`
 
+  
+
   export const fetchPublication = `
-  query Publication {
+  query Publication($id: ProfileId!) {
     publication(request: {
-      publicationId: "0x01-0x01"
+      publicationId: $id
     }) {
      __typename 
       ... on Post {
@@ -490,43 +555,3 @@ mutation CreateFollowTypedData {
   }
   `
 
-  export const post = `
-  mutation CreatePostTypedData {
-    createPostTypedData(request: {
-      profileId: "0x03",
-      contentURI: "ipfs://QmPogtffEF3oAbKERsoR4Ky8aTvLgBF5totp5AuF8YN6vl",
-      collectModule: {
-        revertCollectModule: true
-      },
-      referenceModule: {
-        followerOnlyReferenceModule: false
-      }
-    }) {
-      id
-      expiresAt
-      typedData {
-        types {
-          PostWithSig {
-            name
-            type
-          }
-        }
-        domain {
-          name
-          chainId
-          version
-          verifyingContract
-        }
-        value {
-          nonce
-          deadline
-          profileId
-          contentURI
-          collectModule
-          collectModuleInitData
-          referenceModule
-          referenceModuleInitData
-        }
-      }
-    }
-  }`

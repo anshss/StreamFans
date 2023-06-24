@@ -35,7 +35,7 @@ export default  function Profile() {
     }
     
     if (!profile) return (
-        <p>{id}</p>
+        <p>Not found</p>
     )
     return (
         <div>

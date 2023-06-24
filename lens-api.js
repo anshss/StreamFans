@@ -112,21 +112,21 @@ query Profiles($id: Handle!) {
 
 export const createProfile = `
 mutation CreateProfile {
-    createProfile(request: { 
-      handle: ${handle},
-      profilePictureUri: null,
-      followNFTURI: null,
-      followModule: null
-    }) {
-      ... on RelayerResult {
-        txHash
-      }
-      ... on RelayError {
-        reason
-      }
-      __typename
+  createProfile(request: { 
+    handle: "devjoshstevens",
+    profilePictureUri: null,
+    followNFTURI: null,
+    followModule: null
+  }) {
+    ... on RelayerResult {
+      txHash
     }
-  }`
+    ... on RelayError {
+      reason
+    }
+    __typename
+  }
+}`
 
   export const createPost = `
   mutation CreatePostTypedData {

@@ -14,7 +14,13 @@ export default function Manage() {
 
     return(
       <div>
-        fetching..
+        <ul className="flex justify-between">
+          <li>Create Profile</li>
+          <li>Manage Followers</li>
+          <li>Manage Streams</li>
+        </ul>
+
+        <CreateProfile />
 
         {/* {if (selectedTab == "Create Profile") {CreateProfile}}
         {if (selectedTab == "Create Post") {CreatePost}}

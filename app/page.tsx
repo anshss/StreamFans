@@ -8,9 +8,9 @@ import { useRouter } from 'next/navigation'
 
 
 export default function Home() {
-  // const { data: profiles } = useExploreProfiles({
-  //   limit: 25
-  // })
+  const { data: profiles } = useExploreProfiles({
+    limit: 25
+  })
 
 
   const [handle, setHandle] = useState<string | null>(null);
@@ -51,7 +51,7 @@ export default function Home() {
         </button>
       </form>
 
-      {/* {
+      {
         profiles?.map((profile, index) => (
           <Link href={`/profile/${profile.handle}`} key={index}>
             <div className='my-14'>
@@ -70,7 +70,7 @@ export default function Home() {
             </div>
           </Link>
         ))
-      } */}
+      }
     </div>
   )
 }

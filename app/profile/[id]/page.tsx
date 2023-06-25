@@ -11,6 +11,7 @@ import {
   Profile,
   ProfileOwnedByMe,
   NotFoundError,
+  useUnfollow,
 } from "@lens-protocol/react-web";
 import { useAccount, useConnect, useDisconnect } from "wagmi";
 import { InjectedConnector } from "wagmi/connectors/injected";
@@ -18,32 +19,14 @@ import { formatPicture } from "../../../utils";
 
 export default function Profile() {
   // new hooks
-  const { execute: login } = useWalletLogin();
-  const { execute: logout } = useWalletLogout();
   const { data: wallet } = useActiveProfile();
   const { isConnected } = useAccount();
-  const { disconnectAsync } = useDisconnect();
 
   const pathName = usePathname();
   const handle = pathName?.split("/")[2];
 
   let { data: profile, loading } = useProfile({ handle });
 
-  const { connectAsync } = useConnect({
-    connector: new InjectedConnector(),
-  });
-
-  // new login function
-  const onLoginClick = async () => {
-    if (isConnected) {
-      await disconnectAsync();
-    }
-    const { connector } = await connectAsync();
-    if (connector instanceof InjectedConnector) {
-      const signer = await connector.getSigner();
-      await login(signer);
-    }
-  };
 
   if (loading) return <p className="p-14">Loading ...</p>;
 
@@ -90,6 +73,20 @@ function FollowComponent({
     followee: profile,
     follower: wallet,
   });
+  const { execute: unFollow } = useUnfollow({
+    followee: profile,
+    follower: wallet,
+  });
+
+  function handelClick(){
+    if (profile.isFollowedByMe){
+      unFollow()
+    }
+    else{
+      follow()
+    }
+
+  }
 
   console.log( wallet,
     profile,
@@ -99,9 +96,9 @@ function FollowComponent({
       {isConnected && (
         <button
           className="bg-white text-black px-14 py-4 rounded-full"
-          onClick={follow}
+          onClick={handelClick}
         >
-          Follow {profile.handle}
+          {profile.isFollowedByMe ? "UnFollow" :"Follow"} {profile.handle}
         </button>
       )}
     </>

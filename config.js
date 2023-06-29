@@ -1,4 +1,4 @@
-export const address = `0xe854E88945482bbD14e3310b7E947d683F7853b9`
+export const address = `0x6E95d1c40707E2bD9795A2426aCF0f4625BC7ce5`
 
 export const abiFactory = `[
 	{
@@ -62,6 +62,25 @@ export const abiFactory = `[
 		"inputs": [
 			{
 				"internalType": "string",
+				"name": "",
+				"type": "string"
+			}
+		],
+		"name": "hasFlowrate",
+		"outputs": [
+			{
+				"internalType": "bool",
+				"name": "",
+				"type": "bool"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "string",
 				"name": "_username",
 				"type": "string"
 			}
@@ -69,6 +88,43 @@ export const abiFactory = `[
 		"name": "mintCall",
 		"outputs": [],
 		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "string",
+				"name": "_username",
+				"type": "string"
+			},
+			{
+				"internalType": "string",
+				"name": "_flowrate",
+				"type": "string"
+			}
+		],
+		"name": "setFlowrate",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "address",
+				"name": "",
+				"type": "address"
+			}
+		],
+		"name": "userFlowrate",
+		"outputs": [
+			{
+				"internalType": "string",
+				"name": "",
+				"type": "string"
+			}
+		],
+		"stateMutability": "view",
 		"type": "function"
 	},
 	{

@@ -21,32 +21,9 @@ export default function Home() {
   };
 
   return (
-    <div className="p-20">
-      <h1 className="text-5xl mb-4">My Lens App</h1>
+    <div className="py-20 px-20 max-w-screen-xl mx-auto">
 
-      <form onSubmit={onSubmit}>
-        <input
-          minLength={5}
-          maxLength={31}
-          required
-          value={handle || ""}
-          type="text"
-          onChange={(e) => {
-            setHandle(e.target.value);
-          }}
-          placeholder="Search user"
-          className="px-6 py-4 rounded-sm text-black mr-4"
-        />
-
-        <button
-          className="bg-white text-black px-14 py-4 rounded-full"
-          type="submit"
-        >
-          Look up
-        </button>
-      </form>
-
-      <div className="max-w-screen-xl mx-auto p-4">
+      <div className="max-w-screen-xl mx-auto py-4 mb-4">
         <form className="flex items-center" onSubmit={onSubmit}>
           <label htmlFor="simple-search" className="sr-only">
             Search
@@ -97,11 +74,12 @@ export default function Home() {
                 d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
               />
             </svg>
-            Look up
+            Search
           </button>
-
         </form>
       </div>
+
+      <h1 className="text-5xl mb-4">Explore profiles on OnlyLens</h1>
 
       {profiles?.map((profile, index) => (
         <Link href={`/profile/${profile.handle}`} key={index}>

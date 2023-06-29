@@ -19,6 +19,8 @@ export function WhenLoggedInWithProfile({ children }: WhenLoggedInWithProfilePro
   const { data: wallet, loading: walletLoading } = useActiveWallet();
   const { data: profile, error, loading: profileLoading } = useActiveProfile();
 
+
+  console.log("Profile: ", profile)
   if (walletLoading || profileLoading) {
     return null;
   }

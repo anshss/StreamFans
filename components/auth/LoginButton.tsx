@@ -55,7 +55,7 @@ export function LoginButton({ handle }: { handle?: string }) {
 
           if (!profile.picture) {
             avatarUrl =
-              "https://api.dicebear.com/6.x/adventurer/svg?backgroundType=gradientLinear,solid&seed=" +
+              "https://api.dicebear.com/6.x/identicon/svg?backgroundType=gradientLinear,solid&seed=" +
               profile.handle;
           } else if (profile.picture?.__typename === "MediaSet") {
             avatarUrl = formatPicture(profile.picture);

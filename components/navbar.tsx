@@ -58,13 +58,28 @@ export default function Navbar() {
             </Link> */}
             <nav className="relative z-10 transition-colors duration-300 w-full">
               <ul className="hidden flex-row items-center text-[15px] font-medium lg:flex [&>button]:px-10 justify-between w-full">
-                <li className={isActive("/") ? "text-blue-500" : ""}>
-                  <div className="relative inline-block w-full text-left">
-                    <Link className="hover:opacity-75 lg:pl-5 lg:pr-5" href="/">
-                      Home
-                    </Link>
-                  </div>
-                </li>
+                <div className="flex flex-row items-center">
+                  <li className={isActive("/") ? "text-blue-500" : ""}>
+                    <div className="relative inline-block w-full text-left">
+                      <Link
+                        className="hover:opacity-75 lg:pl-5 lg:pr-5"
+                        href="/"
+                      >
+                        Home
+                      </Link>
+                    </div>
+                  </li>
+                  <li className={isActive("/post") ? "text-blue-500" : ""}>
+                    <div className="relative inline-block w-full text-left">
+                      <Link
+                        className="hover:opacity-75 lg:pl-5 lg:pr-5"
+                        href="/post"
+                      >
+                        Post
+                      </Link>
+                    </div>
+                  </li>
+                </div>
                 {/* <li className={isActive('/store') ? "text-blue-500" : ''}> 
                   <div className="relative inline-block w-full text-left">
                     <Link
@@ -109,10 +124,9 @@ export default function Navbar() {
 
                   <li>
                     <div className="relative inline-block w-full text-left">
-                        <div className="hover:opacity-75 lg:pl-5 lg:pr-5">
-
-                      <LoginButton />
-                        </div>
+                      <div className="hover:opacity-75 lg:pl-5 lg:pr-5">
+                        <LoginButton />
+                      </div>
                     </div>
                   </li>
                 </div>

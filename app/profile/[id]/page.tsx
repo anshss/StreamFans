@@ -15,7 +15,7 @@ import { useAccount, useConnect, useDisconnect } from "wagmi";
 import { InjectedConnector } from "wagmi/connectors/injected";
 import { formatPicture } from "../../../utils";
 import { toast } from "react-hot-toast";
-import { Framework } from "@superfluid-finance/sdk-core";
+import { Framework, SuperToken } from "@superfluid-finance/sdk-core";
 import { useEffect, useState } from "react";
 import { ethers } from "ethers";
 import web3modal from "web3modal";
@@ -84,7 +84,7 @@ function FollowComponent({
     // -----
 
     const superTokenAddress = `0x96B82B65ACF7072eFEb00502F45757F254c2a0D4`;
-    const [superToken, setSuperToken] = useState();
+    const [superToken, setSuperToken] = useState<SuperToken>();
 
     useEffect(() => {
         sfInitialize()
@@ -115,7 +115,7 @@ function FollowComponent({
     const recipientAddress = profile.ownedBy;
     const flowRate = `385802469135802`
 
-    async function startFlow(xReceiverAddress, xFlowRate) {
+    async function startFlow(xReceiverAddress: string, xFlowRate: string) {
         if (senderAddress.toUpperCase() == xReceiverAddress.toUpperCase()) return
         console.log(senderAddress, xReceiverAddress, xFlowRate);
 
@@ -143,7 +143,7 @@ function FollowComponent({
         );
     }
 
-    async function stopFlow(xReceiverAddress) {
+    async function stopFlow(xReceiverAddress: string) {
 
         if (senderAddress?.toUpperCase() == xReceiverAddress?.toUpperCase()) return
 
@@ -155,21 +155,21 @@ function FollowComponent({
         const provider = new ethers.providers.Web3Provider(connection);
         const signer = provider.getSigner();
 
-        const flowOp = superToken.deleteFlow({
+        const flowOp = superToken?.deleteFlow({
             sender: senderAddress,
             receiver: xReceiverAddress,
         });
 
-        const txnResponse = await flowOp.exec(signer);
-        const txnReceipt = await txnResponse.wait();
+        const txnResponse = await flowOp?.exec(signer);
+        const txnReceipt = await txnResponse?.wait();
         console.log("stopped");
     }
 
-    async function getFlowInfo(xReceiverAddress) {
+    async function getFlowInfo(xReceiverAddress: string) {
         const provider = await getEthersProvider();
         if (senderAddress == xReceiverAddress) return
         
-        const flowInfo = await superToken.getFlow({
+        const flowInfo = await superToken?.getFlow({
             sender: senderAddress,
             receiver: xReceiverAddress,
             providerOrSigner: provider,

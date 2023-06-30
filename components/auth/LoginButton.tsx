@@ -1,16 +1,20 @@
-import { useWalletLogin, useWalletLogout } from "@lens-protocol/react-web";
+import {
+  useActiveProfile,
+  useWalletLogin,
+  useWalletLogout,
+} from "@lens-protocol/react-web";
 import { useEffect } from "react";
 import toast from "react-hot-toast";
 import { useAccount, useConnect, useDisconnect } from "wagmi";
 import { InjectedConnector } from "wagmi/connectors/injected";
-
 import { WhenLoggedInWithProfile } from "./WhenLoggedInWithProfile";
 import { WhenLoggedOut } from "./WhenLoggedOut";
-import { formatPicture } from "@/utils";
 import { Dropdown, Avatar } from "flowbite-react";
 import Link from "next/link";
+import { formatPicture } from "@/utils";
+import { getAddress } from "@/functions";
 
-export function LoginButton({ handle }: { handle?: string }) {
+export function LoginButton() {
   const {
     execute: login,
     error: loginError,
@@ -20,6 +24,17 @@ export function LoginButton({ handle }: { handle?: string }) {
 
   const { isConnected } = useAccount();
   const { disconnectAsync } = useDisconnect();
+  const { data: profile, error, loading: profileLoading } = useActiveProfile();
+
+  const handle = profile?.handle;
+
+  useEffect(() => {
+    if (handle) {
+      getAddress(handle).then((address) => {
+        console.log("is contract deplotyed: ", address);
+      });
+    }
+  }, [handle]);
 
   const { connectAsync } = useConnect({
     connector: new InjectedConnector(),
@@ -34,7 +49,7 @@ export function LoginButton({ handle }: { handle?: string }) {
 
     if (connector instanceof InjectedConnector) {
       const signer = await connector.getSigner();
-      await login(signer, handle);
+      await login(signer);
     }
   };
 
@@ -72,19 +87,19 @@ export function LoginButton({ handle }: { handle?: string }) {
                     <span className="block text-sm">Bonnie Green</span>
                   ) : null}
 
-                  <span className="block truncate text-sm font-medium">@{profile.handle}</span>
+                  <span className="block truncate text-sm font-medium">
+                    @{profile.handle}
+                  </span>
                 </Dropdown.Header>
-                <Dropdown.Item><Link href="/manage">Dashboard</Link></Dropdown.Item>
+                <Dropdown.Item>
+                  <Link href="/manage">Dashboard</Link>
+                </Dropdown.Item>
                 {/* <Dropdown.Item>Settings</Dropdown.Item>
                 <Dropdown.Item>Earnings</Dropdown.Item> */}
                 <Dropdown.Divider />
                 <Dropdown.Item onClick={onLogoutClick}>Sign out</Dropdown.Item>
               </Dropdown>
             </div>
-
-            // <button onClick={onLogoutClick} disabled={isLogoutPending}>
-            //   <strong>Log out</strong>
-            // </button>
           );
         }}
       </WhenLoggedInWithProfile>
@@ -102,3 +117,4 @@ export function LoginButton({ handle }: { handle?: string }) {
     </>
   );
 }
+

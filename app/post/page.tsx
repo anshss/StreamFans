@@ -22,6 +22,7 @@ import {
 import { ethers } from "ethers";
 import web3modal from "web3modal";
 import { useActiveProfile, useActiveWallet } from "@lens-protocol/react-web";
+import FileUpload from "@/components/fileUpload";
 
 interface FormInput {
   name: string;
@@ -30,6 +31,13 @@ interface FormInput {
   cover: string;
   price: string;
   supply: string;
+}
+
+interface PostInput {
+  description: string;
+  title: string;
+  content: string;
+  image: null | File;
 }
 
 let metadata: MetadataV2 = {
@@ -44,6 +52,8 @@ let metadata: MetadataV2 = {
   locale: "en",
 };
 
+
+
 const uploadMetadataHandler = async (
   data: EncryptedMetadata
 ): Promise<string> => {
@@ -56,14 +66,12 @@ export default function page() {
   const { data: profile, error, loading: profileLoading } = useActiveProfile();
   const [post, setPost] = useState("");
 
-  const [formInput, setFormInput] = useState({
-    name: "test",
-    venue: "test",
-    date: "test",
-    cover: "",
-    price: "10",
-    supply: "10",
-  });
+  const [postInput, setPostInput] = useState<PostInput>({
+    description: "",
+    title: '',
+    content: "",
+    image: null
+  })
 
   async function formURI(formInput: FormInput) {
     const { name, venue, date, price, supply } = formInput;
@@ -97,6 +105,7 @@ export default function page() {
     <div className="p-20">
       <div className="flex w-ful mt-20 items-center text-white">
         <form onSubmit={onSubmit}>
+          <FileUpload />
           <input
             minLength={5}
             maxLength={31}

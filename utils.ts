@@ -53,3 +53,12 @@ export const getURLfromIPFS = async(data: string) => {
   console.log(url);
   return url;
 }
+
+
+export const imageUploadToIpfs = async(image: File) => {
+  const files = [image];
+  const metaCID = await uploadToIPFS(files);
+  const url = `https://ipfs.io/ipfs/${metaCID}/${image.name}`;
+  console.log(url);
+  return url;
+}

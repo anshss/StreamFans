@@ -1,5 +1,4 @@
 import { address, abiFactory } from "./config";
-
 import web3modal from "web3modal";
 import { ethers } from "ethers";
 
@@ -12,13 +11,13 @@ async function getContract() {
     return contract;
 }
 
-export async function hasDeployed(username) {
+export async function hasDeployed(username: string) {
     const contract = await getContract();
     const data = await contract.hasDeployed(username);
     return data;
 }
 
-export async function getAddress(username) {
+export async function getAddress(username:string) {
     const contract = await getContract();
     const hasDeployedValue = await hasDeployed(username);
 
@@ -27,10 +26,6 @@ export async function getAddress(username) {
         return address;
     }
 
-    console.log("contract is not deployed, deploying....")
-
     const deployContractAddress = await contract.deploy(username);
     return deployContractAddress;
 }
-
-

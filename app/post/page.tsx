@@ -3,13 +3,6 @@ import { getURLfromIPFS } from "@/utils";
 import React, { useEffect, useState } from "react";
 import { Web3Provider } from "@ethersproject/providers";
 import {
-  AndCondition,
-  OrCondition,
-  FollowCondition,
-  CollectCondition,
-  EncryptedMetadata,
-  EoaOwnership,
-  Erc20TokenOwnership,
   MetadataV2,
   NftOwnership,
   ProfileOwnership,
@@ -19,7 +12,14 @@ import {
   LensGatedSDK,
   LensEnvironment,
 } from "@lens-protocol/sdk-gated";
-import { signCreatePostTypedData, lensHub, splitSignature, client, challenge, authenticate } from "../../api";
+import {
+  signCreatePostTypedData,
+  lensHub,
+  splitSignature,
+  client,
+  challenge,
+  authenticate,
+} from "../../api";
 import { ethers, providers } from "ethers";
 import web3modal from "web3modal";
 import {
@@ -40,60 +40,42 @@ import { toast } from "react-hot-toast";
 async function getToken() {
   try {
     /* first request the challenge from the API server */
-    const account = await window.ethereum.send('eth_requestAccounts')
-    const address = account.result[0] 
-
+    const account = await window.ethereum.send("eth_requestAccounts");
+    const address = account.result[0];
 
     const challengeInfo = await client.query({
       query: challenge,
-      variables: { address }
-    })
+      variables: { address },
+    });
     const provider = new ethers.providers.Web3Provider(window.ethereum);
-    const signer = provider.getSigner()
+    const signer = provider.getSigner();
 
-    const signature = await signer.signMessage(challengeInfo.data.challenge.text)
+    const signature = await signer.signMessage(
+      challengeInfo.data.challenge.text
+    );
 
     const authData = await client.mutate({
       mutation: authenticate,
       variables: {
-        address, signature
-      }
-    })
+        address,
+        signature,
+      },
+    });
 
-    const { data: { authenticate: authTokens }} = authData
-    return (authTokens.accessToken)
-
+    const {
+      data: { authenticate: authTokens },
+    } = authData;
+    return authTokens.accessToken;
   } catch (err) {
-    console.log('Error signing in: ', err)
+    console.log("Error signing in: ", err);
   }
 }
-
-interface FormInput {
-  name: string;
-  venue: string;
-  date: string;
-  cover: string;
-  price: string;
-  supply: string;
-}
-
 type ImageState = {
   file: File | null;
   previewURL: string | null;
   loading: boolean;
 };
 
-let metadata: MetadataV2 = {
-  version: "2.0.0",
-  metadata_id: uuidv4(),
-  content: "content",
-  name: "name",
-  description: "description",
-  attributes: [],
-  //   appId: "app_id",
-  mainContentFocus: PublicationMainFocus.TextOnly,
-  locale: "en",
-};
 
 // {
 //   "version": "2.0.0",
@@ -197,7 +179,7 @@ function Composer({ publisher }: { publisher: ProfileOwnedByMe }) {
   async function onSubmit(event: React.FormEvent<HTMLFormElement>) {
     if (!publisher) return;
     event.preventDefault();
-    createGatedPost(publisher);
+    createGatedPost(publisher, postInput, image);
     // console.log(post);
     // if (image.previewURL !== null) {
     //   await create({
@@ -299,11 +281,15 @@ function Composer({ publisher }: { publisher: ProfileOwnedByMe }) {
   );
 }
 
-const createGatedPost = async (profile: ProfileOwnedByMe): Promise<void> => {
+const createGatedPost = async (
+  profile: ProfileOwnedByMe,
+  postInput: string,
+  image: ImageState
+): Promise<void> => {
   if (!window.ethereum) return;
 
-  const profileId = profile.id
-  const contractAddress = await getAddress(profile.handle)
+  const profileId = profile.id;
+  const contractAddress = await getAddress(profile.handle);
 
   const nftAccessCondition: NftOwnership = {
     contractAddress: contractAddress,
@@ -320,19 +306,54 @@ const createGatedPost = async (profile: ProfileOwnedByMe): Promise<void> => {
   const provider = new ethers.providers.Web3Provider(connection);
   const signer = provider.getSigner();
 
-  let metadata: MetadataV2 = {
-    version: "2.0.0",
-    metadata_id: uuidv4(),
-    content: "This is a gated post",
-    name: "name",
-    description: "description",
-    attributes: [],
-    //   appId: "app_id",
-    mainContentFocus: PublicationMainFocus.TextOnly,
-    locale: "en",
-  };
+  let metadata: MetadataV2;
 
+  // let metadata: MetadataV2 = {
+  //   version: "2.0.0",
+  //   metadata_id: uuidv4(),
+  //   content: "This is a gated post",
+  //   name: "name",
+  //   description: "description",
+  //   attributes: [],
+  //   //   appId: "app_id",
+  //   mainContentFocus: PublicationMainFocus.TextOnly,
+  //   locale: "en",
+  // };
 
+  console.log("image from inside is", image)
+
+  if (image.previewURL === null) {
+    metadata = {
+      version: "2.0.0",
+      metadata_id: uuidv4(),
+      content: postInput,
+      name: "Post by " + profile.handle,
+      description: "description",
+      attributes: [],
+      mainContentFocus: PublicationMainFocus.TextOnly,
+      locale: "en",
+    };
+  } else {
+    metadata = {
+      version: "2.0.0",
+      metadata_id: uuidv4(),
+      content: postInput,
+      name: "Post by " + profile.handle,
+      description: "description",
+      attributes: [],
+      image: image.previewURL,
+      mainContentFocus: PublicationMainFocus.Image,
+      locale: "en",
+      imageMimeType: ImageType.JPEG,
+      media: [
+        {
+          item: image.previewURL,
+          cover: image.previewURL,
+          type:  ImageType.JPEG,
+        },
+      ],
+    };
+  }
 
   const sdk = await LensGatedSDK.create({
     provider: provider,
@@ -342,21 +363,16 @@ const createGatedPost = async (profile: ProfileOwnedByMe): Promise<void> => {
 
   const { contentURI, encryptedMetadata } = await sdk.gated.encryptMetadata(
     metadata,
-    profileId, // the signed in user's profile id
+    profileId,
     {
       nft: nftAccessCondition,
-    }, // or any other access condition object
+    },
     uploadJson
   );
-  console.log(contentURI);
-  console.log(encryptedMetadata);
-  // contentURI is ready to be used in the `contentURI` field of your `createPostTypedMetadata` call
-  // also exposing the encrypted metadata in case you want to do something with it
-  // ... create post using the Lens API ...
 
   if (!encryptedMetadata) {
-    toast.error("No encrypted metadata")
-    return
+    toast.error("No encrypted metadata");
+    return;
   }
 
   let gated = {
@@ -377,7 +393,9 @@ const createGatedPost = async (profile: ProfileOwnedByMe): Promise<void> => {
     },
     gated,
   };
-  const token = await getToken()
+  const token = await getToken();
+
+  if (!token) return;
 
   window.localStorage.setItem("lens-access-token", token);
 
@@ -407,7 +425,4 @@ const createGatedPost = async (profile: ProfileOwnedByMe): Promise<void> => {
   } catch (err) {
     console.log("error posting publication: ", err);
   }
-
-
 };
-

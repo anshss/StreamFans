@@ -12,7 +12,7 @@ async function getContract() {
     return contract;
 }
 
-async function mintToken(username) {
+export async function mintToken(username) {
     const contract = await getContract();
     const tx = await contract.mintCall(username)
 }

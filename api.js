@@ -15,7 +15,7 @@ const authLink = setContext(async (_, { headers }) => {
   return {
     headers: {
       ...headers,
-      authorization: token ? `Bearer ${token}` : "",
+      authorization: (token ? `Bearer ${token}` : ""),
     }
   }
 })
@@ -113,7 +113,7 @@ export async function createPostTypedDataMutation (request, token) {
     },
     context: {
       headers: {
-        Authorization: `Bearer ${token}`
+        Authorization: (token ? `Bearer ${token}` : "")
       }
     }
   })

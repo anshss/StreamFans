@@ -6,7 +6,7 @@ import { publicProvider } from 'wagmi/providers/public'
 import { LensProvider, LensConfig, development } from '@lens-protocol/react-web'
 import { bindings as wagmiBindings } from '@lens-protocol/wagmi'
 import { Toaster } from 'react-hot-toast'
-import Navbar from '@/components/Navbar'
+import Navbar from '@/components/navbar'
 const { provider, webSocketProvider } = configureChains([polygon, mainnet], [publicProvider()])
 
 const client = createClient({

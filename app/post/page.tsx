@@ -30,7 +30,7 @@ import {
   useActiveWallet,
   useCreatePost,
 } from "@lens-protocol/react-web";
-import FileUpload from "@/components/FileUpload";
+import FileUpload from "@/components/fileUpload";
 import Loader from "@/components/Loader";
 import { v4 as uuidv4 } from "uuid";
 import { WebBundlr } from "@bundlr-network/client";
@@ -139,7 +139,7 @@ async function uploadJson(data: unknown) {
   }
 }
 
-export default function page() {
+export default function Page() {
   const { data: wallet, loading: walletLoading } = useActiveWallet();
   const { data: profile, error, loading: profileLoading } = useActiveProfile();
 

@@ -19,6 +19,7 @@ import {
   LensGatedSDK,
   LensEnvironment,
 } from "@lens-protocol/sdk-gated";
+import { signCreatePostTypedData, lensHub, splitSignature, client, challenge, authenticate } from "../../api";
 import { ethers, providers } from "ethers";
 import web3modal from "web3modal";
 import {
@@ -33,6 +34,39 @@ import FileUpload from "@/components/FileUpload";
 import Loader from "@/components/Loader";
 import { v4 as uuidv4 } from "uuid";
 import { WebBundlr } from "@bundlr-network/client";
+import { getAddress } from "@/functions";
+import { toast } from "react-hot-toast";
+
+async function getToken() {
+  try {
+    /* first request the challenge from the API server */
+    const account = await window.ethereum.send('eth_requestAccounts')
+    const address = account.result[0] 
+
+
+    const challengeInfo = await client.query({
+      query: challenge,
+      variables: { address }
+    })
+    const provider = new ethers.providers.Web3Provider(window.ethereum);
+    const signer = provider.getSigner()
+
+    const signature = await signer.signMessage(challengeInfo.data.challenge.text)
+
+    const authData = await client.mutate({
+      mutation: authenticate,
+      variables: {
+        address, signature
+      }
+    })
+
+    const { data: { authenticate: authTokens }} = authData
+    return (authTokens.accessToken)
+
+  } catch (err) {
+    console.log('Error signing in: ', err)
+  }
+}
 
 interface FormInput {
   name: string;
@@ -80,13 +114,6 @@ let metadata: MetadataV2 = {
 //   "locale": "en-US",
 //   "appId": "Lenster"
 // }
-
-const uploadMetadataHandler = async (
-  data: EncryptedMetadata
-): Promise<string> => {
-  // Upload the encrypted metadata to your server and return a publicly accessible url
-  return Promise.resolve("test");
-};
 
 // async function uploadJson(data: unknown) {
 //   try {
@@ -170,27 +197,27 @@ function Composer({ publisher }: { publisher: ProfileOwnedByMe }) {
   async function onSubmit(event: React.FormEvent<HTMLFormElement>) {
     if (!publisher) return;
     event.preventDefault();
-    createGatedPost(publisher.id);
+    createGatedPost(publisher);
     // console.log(post);
-    if (image.previewURL !== null) {
-      await create({
-        content: postInput,
-        contentFocus: ContentFocus.IMAGE,
-        locale: "en",
-        media: [
-          {
-            url: image.previewURL,
-            mimeType: ImageType.JPEG,
-          },
-        ],
-      });
-    } else {
-      await create({
-        content: postInput,
-        contentFocus: ContentFocus.TEXT_ONLY,
-        locale: "en",
-      });
-    }
+    // if (image.previewURL !== null) {
+    //   await create({
+    //     content: postInput,
+    //     contentFocus: ContentFocus.IMAGE,
+    //     locale: "en",
+    //     media: [
+    //       {
+    //         url: image.previewURL,
+    //         mimeType: ImageType.JPEG,
+    //       },
+    //     ],
+    //   });
+    // } else {
+    //   await create({
+    //     content: postInput,
+    //     contentFocus: ContentFocus.TEXT_ONLY,
+    //     locale: "en",
+    //   });
+    // }
   }
 
   return (
@@ -272,14 +299,16 @@ function Composer({ publisher }: { publisher: ProfileOwnedByMe }) {
   );
 }
 
-const createGatedPost = async (profileId: string): Promise<void> => {
+const createGatedPost = async (profile: ProfileOwnedByMe): Promise<void> => {
   if (!window.ethereum) return;
 
+  const profileId = profile.id
+  const contractAddress = await getAddress(profile.handle)
+
   const nftAccessCondition: NftOwnership = {
-    contractAddress: "0x0000000000000000000000000000000000000000",
+    contractAddress: contractAddress,
     chainID: 80001,
-    contractType: ContractType.Erc721, // the type of the NFT collection, ERC721 and ERC1155 are supported
-    // tokenIds: ["1", "2", "3"], // OPTIONAL - the token IDs of the NFTs that grant access to the metadata, if ommitted, owning any NFT from the collection will grant access
+    contractType: ContractType.Erc721,
   };
 
   const modal = new web3modal({
@@ -291,18 +320,25 @@ const createGatedPost = async (profileId: string): Promise<void> => {
   const provider = new ethers.providers.Web3Provider(connection);
   const signer = provider.getSigner();
 
+  let metadata: MetadataV2 = {
+    version: "2.0.0",
+    metadata_id: uuidv4(),
+    content: "This is a gated post",
+    name: "name",
+    description: "description",
+    attributes: [],
+    //   appId: "app_id",
+    mainContentFocus: PublicationMainFocus.TextOnly,
+    locale: "en",
+  };
+
+
+
   const sdk = await LensGatedSDK.create({
     provider: provider,
     signer: signer,
     env: LensEnvironment.Mumbai,
   });
-
-  // this must be called anytime you change networks, exposed so you can add this to your Web3Provider event handling
-  // but not necessary to call explicitly
-  //   await sdk.connect({
-  //     address: "0x1234123412341234123412341234123412341234", // your signer's wallet address
-  //     env: LensEnvironment.Mumbai,
-  //   });
 
   const { contentURI, encryptedMetadata } = await sdk.gated.encryptMetadata(
     metadata,
@@ -310,12 +346,68 @@ const createGatedPost = async (profileId: string): Promise<void> => {
     {
       nft: nftAccessCondition,
     }, // or any other access condition object
-    uploadMetadataHandler
+    uploadJson
   );
   console.log(contentURI);
   console.log(encryptedMetadata);
   // contentURI is ready to be used in the `contentURI` field of your `createPostTypedMetadata` call
   // also exposing the encrypted metadata in case you want to do something with it
   // ... create post using the Lens API ...
+
+  if (!encryptedMetadata) {
+    toast.error("No encrypted metadata")
+    return
+  }
+
+  let gated = {
+    encryptedSymmetricKey:
+      encryptedMetadata.encryptionParams.providerSpecificParams.encryptionKey,
+    nft: nftAccessCondition,
+  };
+
+  /* configure the final post data containing the content URI and the gated configuration */
+  const createPostRequest = {
+    profileId,
+    contentURI: contentURI,
+    collectModule: {
+      freeCollectModule: { followerOnly: true },
+    },
+    referenceModule: {
+      followerOnlyReferenceModule: false,
+    },
+    gated,
+  };
+  const token = await getToken()
+
+  window.localStorage.setItem("lens-access-token", token);
+
+  console.log(token);
+  try {
+    const signedResult = await signCreatePostTypedData(
+      createPostRequest,
+      token
+    );
+    const typedData = signedResult.result.typedData;
+    const { v, r, s } = splitSignature(signedResult.signature);
+    const tx = await lensHub.postWithSig({
+      profileId: typedData.value.profileId,
+      contentURI: typedData.value.contentURI,
+      collectModule: typedData.value.collectModule,
+      collectModuleInitData: typedData.value.collectModuleInitData,
+      referenceModule: typedData.value.referenceModule,
+      referenceModuleInitData: typedData.value.referenceModuleInitData,
+      sig: {
+        v,
+        r,
+        s,
+        deadline: typedData.value.deadline,
+      },
+    });
+    console.log("successfully created post: tx hash", tx.hash);
+  } catch (err) {
+    console.log("error posting publication: ", err);
+  }
+
+
 };
 

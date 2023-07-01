@@ -80,7 +80,7 @@ export default function Home() {
         </form>
       </div>
 
-      <h1 className="text-5xl mb-4">Explore profiles on OnlyLens</h1>
+      <h1 className="text-5xl mb-4">Explore profiles on StreamFans</h1>
 
       <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mt-8">
             {profiles?.map((profile, index) => (

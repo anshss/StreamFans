@@ -1,5 +1,5 @@
 Contract Address: 
 </br>
-Deployed Site: 
+Deployed Site: https://streamfans.vercel.app/
 </br>
-Demo Video: 
+Demo Video: https://youtu.be/-QY_7PKoFPY
